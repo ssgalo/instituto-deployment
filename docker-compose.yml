@@ -1,0 +1,59 @@
+services:
+  frontend:
+    build:
+      context: ../instituto-asistencias-front
+      args:
+        - VITE_API_BASE_URL=/api
+    volumes:
+      - frontend-build:/app
+
+  backend:
+    build:
+      context: ../InstitutoAdv.API
+    container_name: instituto-backend
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - CORS_ORIGINS=http://localhost 
+      - MYSQL_CONNECTION_STRING=Server=database;Port=3306;Database=instituto_adv;Uid=adv_usr;Pwd=adv_password_2024;
+      - JWT_SECRET_KEY=z$C&F)J@NcRfUjXn2r5u8x/A?D(G-KaPdSgVkYp3s6v9y$B&E)H+MbQeThWmZq4t
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:8.0
+    container_name: instituto-mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "adv_usr", "-padv_password_2024"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - MYSQL_DATABASE=instituto_adv
+      - MYSQL_USER=adv_usr
+      - MYSQL_PASSWORD=adv_password_2024
+      - MYSQL_ROOT_PASSWORD=root_password_123
+    ports:
+      - "3307:3306" 
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+  nginx:
+    build: ./nginx
+    container_name: instituto-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - frontend-build:/usr/share/nginx/html
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  db-data:
+  frontend-build:
