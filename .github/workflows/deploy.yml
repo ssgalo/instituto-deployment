@@ -1,0 +1,50 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    # La máquina virtual que usará GitHub para correr este trabajo
+    runs-on: ubuntu-latest
+
+    # Pasos que se ejecutarán en secuencia
+    steps:
+      - name: Deploy to VPS via SSH
+        # Usamos una Action popular de la comunidad para conectarnos por SSH y ejecutar comandos
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Navegamos a la carpeta principal del proyecto en el VPS
+            cd ~/App-Asistencias
+
+            # Actualizamos el código de los 3 repositorios
+            echo ">>> Actualizando repositorio de despliegue..."
+            git pull
+            
+            echo ">>> Actualizando repositorio del frontend..."
+            cd ../instituto-asistencias-front && git pull
+            
+            echo ">>> Actualizando repositorio del backend..."
+            cd ../InstitutoAdv.API && git pull
+
+            # Volvemos a la carpeta principal para ejecutar docker-compose
+            cd ../App-Asistencias
+            
+            # Creamos el archivo .env en el VPS usando el secret de GitHub
+            echo ">>> Creando archivo .env..."
+            echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+            
+            # Reconstruimos y reiniciamos todos los contenedores
+            echo ">>> Desplegando con Docker Compose..."
+            docker compose up --build -d
+            
+            # (Opcional) Limpiamos imágenes de Docker antiguas para ahorrar espacio
+            echo ">>> Limpiando imágenes de Docker no utilizadas..."
+            docker image prune -f
+            
+            echo ">>> ¡Despliegue completado!"
