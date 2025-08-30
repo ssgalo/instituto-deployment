@@ -3,7 +3,7 @@ services:
     build:
       context: ../instituto-asistencias-front
       args:
-        - VITE_API_BASE_URL=/api
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     volumes:
       - frontend-build:/app
 
@@ -14,9 +14,9 @@ services:
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - CORS_ORIGINS=http://localhost 
-      - MYSQL_CONNECTION_STRING=Server=database;Port=3306;Database=instituto_adv;Uid=adv_usr;Pwd=adv_password_2024;
-      - JWT_SECRET_KEY=z$C&F)J@NcRfUjXn2r5u8x/A?D(G-KaPdSgVkYp3s6v9y$B&E)H+MbQeThWmZq4t
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - MYSQL_CONNECTION_STRING=Server=database;Port=3306;Database=${MYSQL_DATABASE};Uid=${MYSQL_USER};Pwd=${MYSQL_PASSWORD};
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       database:
         condition: service_healthy
@@ -26,15 +26,15 @@ services:
     container_name: instituto-mysql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "adv_usr", "-padv_password_2024"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
     environment:
-      - MYSQL_DATABASE=instituto_adv
-      - MYSQL_USER=adv_usr
-      - MYSQL_PASSWORD=adv_password_2024
-      - MYSQL_ROOT_PASSWORD=root_password_123
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     ports:
       - "3307:3306" 
     volumes:
