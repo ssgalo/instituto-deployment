@@ -1,9 +1,14 @@
+# .github/workflows/deploy.yml
+
+# Nombre del workflow que aparecerá en la pestaña "Actions" de GitHub
 name: Deploy to VPS
 
+# Disparador: Este workflow se ejecuta cada vez que hacés un push a la rama 'main'
 on:
   push:
     branches: [ main ]
 
+# Trabajos: Definimos un único trabajo llamado 'deploy'
 jobs:
   deploy:
     # La máquina virtual que usará GitHub para correr este trabajo
@@ -19,31 +24,48 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Navegamos a la carpeta principal del proyecto en el VPS
-            cd ~/App-Asistencias
+            # Definimos las rutas de los proyectos para más claridad
+            export DEPLOY_DIR=~/instituto-deployment
+            export FRONTEND_DIR=~/instituto-asistencias-front
+            export BACKEND_DIR=~/InstitutoAdv.API
 
-            # Actualizamos el código de los 3 repositorios
-            echo ">>> Actualizando repositorio de despliegue..."
-            git pull
+            # --- Setup/Update Deployment Repo ---
+            if [ -d "$DEPLOY_DIR" ]; then
+              echo ">>> Actualizando repositorio de despliegue..."
+              cd $DEPLOY_DIR && git pull
+            else
+              echo ">>> Clonando repositorio de despliegue..."
+              git clone git@github.com:tu-usuario/instituto-deployment.git $DEPLOY_DIR
+            fi
             
-            echo ">>> Actualizando repositorio del frontend..."
-            cd ../instituto-asistencias-front && git pull
-            
-            echo ">>> Actualizando repositorio del backend..."
-            cd ../InstitutoAdv.API && git pull
+            # --- Setup/Update Frontend Repo ---
+            if [ -d "$FRONTEND_DIR" ]; then
+              echo ">>> Actualizando repositorio del frontend..."
+              cd $FRONTEND_DIR && git pull
+            else
+              echo ">>> Clonando repositorio del frontend..."
+              git clone git@github.com:tu-usuario/instituto-asistencias-front.git $FRONTEND_DIR
+            fi
 
-            # Volvemos a la carpeta principal para ejecutar docker-compose
-            cd ../App-Asistencias
+            # --- Setup/Update Backend Repo ---
+            if [ -d "$BACKEND_DIR" ]; then
+              echo ">>> Actualizando repositorio del backend..."
+              cd $BACKEND_DIR && git pull
+            else
+              echo ">>> Clonando repositorio del backend..."
+              git clone git@github.com:tu-usuario/InstitutoAdv.API.git $BACKEND_DIR
+            fi
+
+            # --- Ejecutar el Despliegue ---
+            echo ">>> Navegando al directorio de despliegue..."
+            cd $DEPLOY_DIR
             
-            # Creamos el archivo .env en el VPS usando el secret de GitHub
             echo ">>> Creando archivo .env..."
             echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
             
-            # Reconstruimos y reiniciamos todos los contenedores
             echo ">>> Desplegando con Docker Compose..."
             docker compose up --build -d
             
-            # (Opcional) Limpiamos imágenes de Docker antiguas para ahorrar espacio
             echo ">>> Limpiando imágenes de Docker no utilizadas..."
             docker image prune -f
             
