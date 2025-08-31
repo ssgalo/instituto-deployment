@@ -30,7 +30,7 @@ jobs:
               cd $DEPLOY_DIR && git pull
             else
               echo ">>> Clonando repositorio de despliegue..."
-              git clone git@github.com:tu-usuario/instituto-deployment.git $DEPLOY_DIR
+              git clone git@github.com:ssgalo/instituto-deployment.git $DEPLOY_DIR
             fi
             
             if [ -d "$FRONTEND_DIR" ]; then
@@ -38,7 +38,7 @@ jobs:
               cd $FRONTEND_DIR && git pull
             else
               echo ">>> Clonando repositorio del frontend..."
-              git clone git@github.com:tu-usuario/instituto-asistencias-front.git $FRONTEND_DIR
+              git clone git@github.com:ssgalo/instituto-asistencias-front.git $FRONTEND_DIR
             fi
 
             if [ -d "$BACKEND_DIR" ]; then
@@ -46,7 +46,7 @@ jobs:
               cd $BACKEND_DIR && git pull
             else
               echo ">>> Clonando repositorio del backend..."
-              git clone git@github.com:tu-usuario/InstitutoAdv.API.git $BACKEND_DIR
+              git clone git@github.com:ssgalo/InstitutoAdv.API.git $BACKEND_DIR
             fi
 
             echo ">>> Navegando al directorio de despliegue..."
