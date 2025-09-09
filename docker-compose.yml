@@ -5,7 +5,7 @@ services:
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     volumes:
-      - frontend-build:/app
+      - frontend-build:/app/dist 
 
   backend:
     build:
@@ -39,7 +39,6 @@ services:
       - "3307:3306" 
     volumes:
       - db-data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d
 
   nginx:
     build: ./nginx
