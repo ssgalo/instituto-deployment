@@ -1,15 +1,23 @@
 services:
-  frontend:
+  nginx:
     build:
-      context: ../instituto-asistencias-front
+      context: .
+      dockerfile: ./nginx/Dockerfile
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    container_name: instituto-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - frontend-build:/app
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
 
   backend:
     build:
-      context: ../InstitutoAdv.API
+      context: ./InstitutoAdv.API
     container_name: instituto-backend
     restart: unless-stopped
     environment:
@@ -36,25 +44,9 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     ports:
-      - "3307:3306" 
+      - "3307:3306"
     volumes:
       - db-data:/var/lib/mysql
 
-  nginx:
-    build: ./nginx
-    container_name: instituto-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - frontend-build:/usr/share/nginx/html
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
-    depends_on:
-      - frontend
-      - backend
-
 volumes:
   db-data:
-  frontend-build:
