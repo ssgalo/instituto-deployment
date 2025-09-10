@@ -5,7 +5,7 @@ services:
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     volumes:
-      - frontend-build:/app/dist 
+      - frontend-build:/app
 
   backend:
     build:
